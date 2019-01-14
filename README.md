@@ -12,7 +12,7 @@ TimeShard is an open-source operational transform time series database. It was p
 
 *Inserting data*
 ```go
-batch := NewBatch()
+batch := timeshard.NewBatch()
 
 text := []byte("this is a long text")
 batch.Insert(0, text)
@@ -32,3 +32,10 @@ for iter.HasNext() {
 	//iter.Value()
 }
 ```
+
+# FAQ
+- *Q:* _Is it safe to iterate while adding new data?_
+- *A:* You can only iterate over snapshots (a copy of a document, at a certain period of time). Snapshots cannot be edited, but you can create Batches from them.
+
+- *Q:* _Is it production ready?_
+- *A:* No. Only if you treat bugs as features.
