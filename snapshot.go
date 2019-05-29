@@ -13,7 +13,7 @@ func NewSnapshot() *Snapshot {
 	return &Snapshot{Shard{
 		make([]byte, 0),
 		make([]uint64, 0),
-		},
+	},
 	}
 }
 
@@ -50,7 +50,7 @@ func (snap *Snapshot) Squash(count uint64) *Batch {
 	iter := snap.Iterator(false)
 
 	current := uint64(0)
-	for iter.HasNext() && (current <= count || count == 0) {
+	for iter.HasNext() && (current < count || count == 0) {
 		maxLen := uint64(utf8.RuneCountInString(mirror))
 
 		switch iter.GetMeta(MetaOperation) {
@@ -62,8 +62,6 @@ func (snap *Snapshot) Squash(count uint64) *Batch {
 
 			n := string(bytes.Runes(iter.Value()))
 			mirror = mirror[:pos] + n + mirror[pos:]
-
-			current++
 		case OpDelete:
 			pos := iter.GetMeta(MetaRetain)
 			if pos > maxLen {
@@ -77,6 +75,8 @@ func (snap *Snapshot) Squash(count uint64) *Batch {
 
 			mirror = mirror[:pos] + mirror[pos+affected:]
 		}
+
+		current++
 	}
 
 	b := NewBatch()
