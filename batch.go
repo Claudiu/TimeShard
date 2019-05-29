@@ -45,6 +45,10 @@ func (c *Batch) Merge(other *Batch) *Batch {
 	return doc
 }
 
+func (c *Batch) MarshalJSON() ([]byte, error) {
+	return c.Snapshot().MarshalJSON()
+}
+
 func (c *Batch) Snapshot() *Snapshot {
 	snap := NewSnapshot()
 	snap.Shard = Shard{

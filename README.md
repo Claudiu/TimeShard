@@ -6,6 +6,7 @@ TimeShard is an open-source operational transform time series database. It was p
 - [x] Delete Operation with Retain
 - [x] Data snapshots
 - [x] Squash (See how a document looked in a point in time)
+- [x] JSON Export
 - [ ] Error recovery
 - [ ] Text Formatting
 - [ ] Disk persistence with Snappy
@@ -34,8 +35,12 @@ for iter.HasNext() {
 ```
 
 # FAQ
-- *Q:* _Is it safe to iterate while adding new data?_
-- *A:* You can only iterate over snapshots (a copy of a document, at a certain period of time). Snapshots cannot be edited, but you can create Batches from them.
+*Q:* _Is it safe to iterate while adding new data?_
 
-- *Q:* _Is it production ready?_
-- *A:* No. Only if you treat bugs as features.
+*A:* You can only iterate over snapshots (a copy of a document, at a certain period of time). Snapshots cannot be edited, but you can create Batches from them.
+
+
+
+*Q:* _Is it production ready?_
+
+*A:* No. Only if you treat bugs as features.
