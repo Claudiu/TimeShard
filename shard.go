@@ -58,7 +58,7 @@ func (s Shard) Less(i, j int) bool {
 
 func (s Shard) Swap(i, j int) {
 	for x := 0; x < MetaSize; x++ {
-		s.meta[i + x], s.meta[j + x] = s.meta[j + x], s.meta[i + x]
+		s.meta[i+x], s.meta[j+x] = s.meta[j+x], s.meta[i+x]
 	}
 }
 
@@ -69,20 +69,19 @@ func (s *Shard) Push(x interface{}) {
 func (s *Shard) Pop() interface{} {
 	old := (*s).meta
 	n := len(old)
-	x := old[n - MetaSize]
-	(*s).meta = old[0 : n - MetaSize]
+	x := old[n-MetaSize]
+	(*s).meta = old[0 : n-MetaSize]
 	return x
 }
-
 
 // Get returns two things, the meta value and a boolean if the value was found.
 // If the index overflows our slice, it will return 0 and false
 func (s *Shard) Get(index int, k MetaType) (uint64, bool) {
-	if s.Len() > index && s.assertIntegrity() {
+	if s.Len() >= index && s.assertIntegrity() {
 		return 0, false
 	}
 
-	return s.meta[uint64(index) * MetaSize + uint64(k)], true
+	return s.meta[uint64(index)*MetaSize+uint64(k)], true
 }
 
 // IsEmpty asserts whether we have 0 actions or not in our shard.
@@ -93,7 +92,7 @@ func (s *Shard) IsEmpty() bool {
 
 // This will assert if data passes simple checks (such as if it's divisible by MetaSize)
 func (s *Shard) assertIntegrity() bool {
-	return len(s.meta) % MetaSize == 0
+	return len(s.meta)%MetaSize == 0
 }
 
 func (s *Shard) pushData(b *[]byte) (dataStart, dataLength uint64) {
