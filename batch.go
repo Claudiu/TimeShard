@@ -1,6 +1,7 @@
 package timeshard
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -20,16 +21,16 @@ func NewBatch() *Batch {
 }
 
 // Merge will concatenate two batches into a single one chronologically
-func (c *Batch) Merge(other *Batch) *Batch {
+func (c *Batch) Merge(other *Batch) (*Batch, error) {
 	snap1 := c.Snapshot()
 	snap2 := other.Snapshot()
 
-	// If the integrity is affected (snap1 or snap2) has operations that are in random order
-	// we return nil
-	// TODO: Error handling -- the Merge function should return (*Batch, error)
-	integrity := snap1.assertIntegrity() && snap2.assertIntegrity()
-	if !integrity {
-		return nil
+	if integrity := snap1.assertIntegrity(); integrity {
+		return nil, fmt.Errorf("first Batch failed integrity check")
+	}
+
+	if integrity := snap2.assertIntegrity(); integrity {
+		return nil, fmt.Errorf("second Batch failed integrity check")
 	}
 
 	// Verify whether snap1 is older then snap2
@@ -50,7 +51,7 @@ func (c *Batch) Merge(other *Batch) *Batch {
 	doc.data = append(doc.data, dataMerged...)
 	doc.meta = append(doc.meta, metaMerged...)
 
-	return doc
+	return doc, nil
 }
 
 // MarshalJSON is a shorthand operation for creating a Snapshot
