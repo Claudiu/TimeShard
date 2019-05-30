@@ -4,10 +4,13 @@ import (
 	"time"
 )
 
+// Batch is a series of alterable shards, if you need to read it
+// You need to create a Snapshot by calling the method.
 type Batch struct {
 	Shard
 }
 
+// NewBatch will initialize an empty batch (with empty slices).
 func NewBatch() *Batch {
 	return &Batch{Shard{
 		make([]byte, 0),
@@ -16,15 +19,20 @@ func NewBatch() *Batch {
 	}
 }
 
+// Merge will concatenate two batches into a single one chronologically
 func (c *Batch) Merge(other *Batch) *Batch {
 	snap1 := c.Snapshot()
 	snap2 := other.Snapshot()
 
+	// If the integrity is affected (snap1 or snap2) has operations that are in random order
+	// we return nil
+	// TODO: Error handling -- the Merge function should return (*Batch, error)
 	integrity := snap1.assertIntegrity() && snap2.assertIntegrity()
 	if !integrity {
 		return nil
 	}
 
+	// Verify whether snap1 is older then snap2
 	first, last := &snap1, &snap2
 	if snap1.LastActivity() > snap2.LastActivity() {
 		first, last = &snap2, &snap1
@@ -45,6 +53,8 @@ func (c *Batch) Merge(other *Batch) *Batch {
 	return doc
 }
 
+// MarshalJSON is a shorthand operation for creating a Snapshot
+// and then calling Marshal on it.
 func (c *Batch) MarshalJSON() ([]byte, error) {
 	return c.Snapshot().MarshalJSON()
 }
@@ -62,19 +72,25 @@ func (c *Batch) Snapshot() *Snapshot {
 	return snap
 }
 
+// Squash is a shorthand operation for creating a Snapshot
+// and then calling Squash on it (reducing it to a single operation)
 func (c *Batch) Squash(s uint64) *Batch {
 	return c.Snapshot().Squash(s)
 }
 
+// add will add an operation into our Shard
 func (c *Batch) add(rawBytes []byte, action, retain uint64) {
 	s, l := c.pushData(&rawBytes)
 	c.pushMeta(s, l, retain, OpInsert)
 }
 
+// Insert will add an OpInsert into our Shard
 func (c *Batch) Insert(at uint64, rawBytes []byte) {
 	c.add(rawBytes, OpInsert, at)
 }
 
+// Delete will add an OpDelete into our Shard
+// TODO: Use add
 func (c *Batch) Delete(at uint64, count uint64) {
 	now := time.Now().UnixNano()
 
