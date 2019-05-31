@@ -2,8 +2,8 @@ package timeshard
 
 import (
 	"encoding/json"
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestSnapshot_MarshalJSON(t *testing.T) {

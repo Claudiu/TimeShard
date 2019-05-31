@@ -2,8 +2,6 @@ package timeshard
 
 import "testing"
 
-
-
 func TestShard_Len(t *testing.T) {
 	batch := NewBatch()
 	batch.Insert(0, []byte{})
@@ -19,8 +17,7 @@ func TestShard_Get(t *testing.T) {
 	batch.Insert(0, []byte{})
 	batch.Delete(0, 1)
 
-	if val, ok := batch.Get(0, MetaOperation);
-		val != OpInsert && ok != true {
+	if val, ok := batch.Get(0, MetaOperation); val != OpInsert && ok != true {
 		t.Fail()
 	}
 }

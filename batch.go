@@ -16,7 +16,7 @@ func NewBatch() *Batch {
 	return &Batch{Shard{
 		make([]byte, 0),
 		make([]uint64, 0),
-		},
+	},
 	}
 }
 

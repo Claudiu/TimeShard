@@ -55,7 +55,6 @@ func (snap *Snapshot) UnmarshalJSON(data []byte) error {
 			continue
 		}
 
-
 		return fmt.Errorf("could not unmarshal: unknown key")
 	}
 

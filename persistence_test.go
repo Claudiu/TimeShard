@@ -1,6 +1,9 @@
 package timeshard
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 const TestString = `Miusov, as a man man of breeding and deilcacy, could not but feel some inwrd qualms, when he reached
 the Father Superior's with Ivan: he felt ashamed of havin lost his temper. He felt that he ought to have disdaimed that
@@ -24,13 +27,15 @@ func TestDocument_Save(t *testing.T) {
 		t.Fail()
 	}
 
-	d2 := &Document{}
+	d2 := &Document{Operations: *NewSnapshot()}
 	if err := d2.FromFile("save_test"); err != nil {
 		t.Log(err.Error())
 		t.Fail()
 	}
 
-	if d2.Operations.IsEmpty() == false {
+	fmt.Println(d2)
+
+	if d2.Operations.IsEmpty() == true {
 		t.Fail()
 	}
 }
