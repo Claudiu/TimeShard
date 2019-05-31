@@ -41,6 +41,17 @@ const (
 // The size of our Meta
 const MetaSize = 5
 
+func NewShard() Shard {
+	newShard := Shard{
+		data: make([]byte, 0),
+		meta: make([]uint64, 0),
+	}
+
+	newShard.Init()
+
+	return newShard
+}
+
 func (s *Shard) Init() {
 	heap.Init(s)
 }

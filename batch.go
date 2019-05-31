@@ -13,11 +13,7 @@ type Batch struct {
 
 // NewBatch will initialize an empty batch (with empty slices).
 func NewBatch() *Batch {
-	return &Batch{Shard{
-		make([]byte, 0),
-		make([]uint64, 0),
-	},
-	}
+	return &Batch{Shard: NewShard()}
 }
 
 // Merge will concatenate two batches into a single one chronologically

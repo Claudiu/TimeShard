@@ -33,9 +33,10 @@ func TestDocument_Save(t *testing.T) {
 		t.Fail()
 	}
 
+	// TODO: Fix empty slice
 	fmt.Println(d2)
 
-	if d2.Operations.IsEmpty() == true {
+	if !d2.Operations.IsEmpty() {
 		t.Fail()
 	}
 }
