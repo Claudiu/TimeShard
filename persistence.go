@@ -14,13 +14,12 @@ var fileSignature = []byte{116, 105, 109, 101, 115, 104, 97, 114, 100}
 
 func (doc *Document) Write(file io.Writer) (int, error) {
 	b, err := json.Marshal(&doc)
-	var out []byte
 
 	if err != nil {
 		return 0, err
 	}
 
-	out = snappy.Encode(out, b)
+	out := snappy.Encode(nil, b)
 
 	return file.Write(out)
 }
@@ -67,8 +66,7 @@ func (doc *Document) FromFile(filename string) error {
 }
 
 func (doc *Document) FromBytes(compressed []byte) (err error) {
-	var decompressed []byte
-	decompressed, err = snappy.Decode(decompressed, compressed)
+	decompressed, err := snappy.Decode(nil, compressed)
 	if err != nil {
 		return err
 	}

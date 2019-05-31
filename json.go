@@ -3,6 +3,7 @@ package timeshard
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 type JSONOperation struct {
@@ -15,7 +16,7 @@ type JSONOperation struct {
 func (snap *Snapshot) MarshalJSON() ([]byte, error) {
 	iter := snap.Iterator(false)
 
-	var jsonOps = []JSONOperation{}
+	var jsonOps []JSONOperation
 	for iter.HasNext() {
 		switch iter.GetMeta(MetaOperation) {
 		case OpInsert:
@@ -34,4 +35,32 @@ func (snap *Snapshot) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(jsonOps)
+}
+
+func (snap *Snapshot) UnmarshalJSON(data []byte) error {
+	var temp []JSONOperation
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	localBatch := NewBatch()
+	for _, op := range temp {
+		if op.Insert != "" {
+			localBatch.Insert(op.Position, []byte(op.Insert))
+			continue
+		}
+
+		if op.Delete != 0 {
+			localBatch.Delete(op.Position, op.Delete)
+			continue
+		}
+
+
+		return fmt.Errorf("could not unmarshal: unknown key")
+	}
+
+	copy(snap.meta, localBatch.meta)
+	copy(snap.data, localBatch.data)
+
+	return nil
 }
