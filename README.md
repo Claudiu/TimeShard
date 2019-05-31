@@ -1,5 +1,21 @@
+<p align="center">
+
 # TimeShard
 TimeShard is an open-source operational transform time series database. It was primarily designed, to store *OT-Operations* from web edited documents (by sending only the modified bits).
+
+</p>
+
+<p align="center">
+  <a href="https://godoc.org/github.com/Claudiu/TimeShard">
+    <img alt="Documentation" src="https://godoc.org/github.com/Claudiu/TimeShard?status.svg">
+  </a>
+  <a href="https://goreportcard.com/report/github.com/Claudiu/TimeShard">
+    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/claudiu/TimeShard">
+  </a>
+  <a href="LICENSE">
+    <img alt="License" src="https://img.shields.io/badge/License-GPL 3.0-green.svg">
+  </a>
+</p>
 
 ## Currently implemented
 - [x] Insert Operation with Retain to move the cursor.
@@ -7,9 +23,9 @@ TimeShard is an open-source operational transform time series database. It was p
 - [x] Data snapshots
 - [x] Squash (See how a document looked in a point in time)
 - [x] JSON Export
-- [ ] Error recovery
+- [x] Error recovery
+- [x] Disk persistence with Snappy
 - [ ] Text Formatting
-- [ ] Disk persistence with Snappy
 
 *Inserting data*
 ```go
