@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-var fileSignature = []byte{116, 105, 109, 101, 115, 104, 97, 114, 100}
+var fileSignature = []byte("application/timeshard")
 
 func (doc *Document) Write(file io.Writer) (int, error) {
 	b, err := json.Marshal(&doc)

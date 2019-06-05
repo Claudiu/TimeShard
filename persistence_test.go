@@ -20,7 +20,9 @@ func TestDocument_Save(t *testing.T) {
 	c := NewBatch()
 	c.Insert(0, []byte(TestString))
 
-	d := &Document{Operations: *c.Snapshot()}
+	d := &Document{
+		Operations: *c.Snapshot(),
+	}
 
 	if err := d.Save("save_test"); err != nil {
 		t.Log(err.Error())
