@@ -5,11 +5,11 @@ import (
 )
 
 func TestForwardIterator_Retain(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 	c.Insert(200, []byte("Sample text"))
 	c.Insert(500, []byte("Sample text"))
 
-	iter := c.Snapshot().Iterator(false)
+	iter := c.Iterator(false)
 
 	for iter.HasNext() {
 		if iter.GetMeta(MetaRetain) != 200 {
@@ -21,11 +21,11 @@ func TestForwardIterator_Retain(t *testing.T) {
 }
 
 func TestReverseIterator_Retain(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 	c.Insert(200, []byte("Sample text"))
 	c.Insert(500, []byte("Sample text"))
 
-	iter := c.Snapshot().Iterator(true)
+	iter := c.Iterator(true)
 
 	for iter.HasNext() {
 		if iter.GetMeta(MetaRetain) != 500 {
@@ -37,7 +37,7 @@ func TestReverseIterator_Retain(t *testing.T) {
 }
 
 func TestSnapshot_Squash(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 
 	c.Insert(0, []byte("a"))
 	c.Insert(1, []byte("l"))
@@ -48,7 +48,7 @@ func TestSnapshot_Squash(t *testing.T) {
 	c.Insert(6, []byte("o"))
 	c.Insert(7, []byte("s"))
 
-	iter := c.Squash(0).Snapshot().Iterator(true)
+	iter := c.Squash(0).Iterator(true)
 	for iter.HasNext() {
 		if string(iter.Value()) != "albatros" {
 			t.Fail()
@@ -57,7 +57,7 @@ func TestSnapshot_Squash(t *testing.T) {
 }
 
 func TestSnapshot_SquashIssue1(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 
 	c.Insert(0, []byte("alb"))
 	c.Insert(1, []byte("a"))
@@ -66,7 +66,7 @@ func TestSnapshot_SquashIssue1(t *testing.T) {
 	c.Insert(4, []byte("o"))
 	c.Insert(5, []byte("s"))
 
-	iter := c.Squash(1).Snapshot().Iterator(true)
+	iter := c.Squash(1).Iterator(true)
 	for iter.HasNext() {
 		if string(iter.Value()) != "alb" {
 			t.Fail()
@@ -75,7 +75,7 @@ func TestSnapshot_SquashIssue1(t *testing.T) {
 }
 
 func TestSnapshot_SquashEmoji(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 
 	c.Insert(0, []byte("😀"))
 	c.Insert(1, []byte("a"))
@@ -84,7 +84,7 @@ func TestSnapshot_SquashEmoji(t *testing.T) {
 	c.Insert(4, []byte("o"))
 	c.Insert(5, []byte("s"))
 
-	iter := c.Squash(1).Snapshot().Iterator(true)
+	iter := c.Squash(1).Iterator(true)
 	for iter.HasNext() {
 		if string(iter.Value()) != "😀" {
 			t.Fail()
@@ -93,7 +93,7 @@ func TestSnapshot_SquashEmoji(t *testing.T) {
 }
 
 func TestBatch_Delete(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 
 	c.Insert(0, []byte("alb"))
 	c.Insert(3, []byte("a"))
@@ -104,7 +104,7 @@ func TestBatch_Delete(t *testing.T) {
 
 	c.Delete(0, 3)
 
-	iter := c.Squash(0).Snapshot().Iterator(true)
+	iter := c.Squash(0).Iterator(true)
 	for iter.HasNext() {
 		if string(iter.Value()) != "atros" {
 			t.Fail()
@@ -113,7 +113,7 @@ func TestBatch_Delete(t *testing.T) {
 }
 
 func TestBatch_DeleteOutOfBounds(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 
 	c.Insert(0, []byte("a"))
 	c.Insert(1, []byte("l"))
@@ -127,7 +127,7 @@ func TestBatch_DeleteOutOfBounds(t *testing.T) {
 	c.Insert(0, []byte("imi plac merele"))
 	c.Delete(0, 9)
 
-	iter := c.Squash(0).Snapshot().Iterator(true)
+	iter := c.Squash(0).Iterator(true)
 	for iter.HasNext() {
 		if string(iter.Value()) != "merele" {
 			t.Fail()
@@ -137,7 +137,7 @@ func TestBatch_DeleteOutOfBounds(t *testing.T) {
 
 func BenchmarkBatch_Insert(b *testing.B) {
 	b.StopTimer()
-	c := NewBatch()
+	c := NewSnapshot()
 
 	b.StartTimer()
 
@@ -148,38 +148,36 @@ func BenchmarkBatch_Insert(b *testing.B) {
 
 func BenchmarkBatch_Squash(b *testing.B) {
 	b.StopTimer()
-	c := NewBatch()
+	c := NewSnapshot()
 
 	for n := uint64(0); n < 1000; n++ {
 		c.Insert(n, []byte("lorem ipsum dolor"))
 	}
 
-	snap := c.Snapshot()
-
 	b.StartTimer()
 
-	newBatch := snap.Squash(0)
+	NewSnapshot := c.Squash(0)
 
-	for iter := newBatch.Snapshot().Iterator(false); iter.HasNext(); {
+	for iter := NewSnapshot.Iterator(false); iter.HasNext(); {
 		iter.Value()
 	}
 }
 
 func BenchmarkBatch_SquashReverse(b *testing.B) {
 	b.StopTimer()
-	c := NewBatch()
+	c := NewSnapshot()
 
 	for n := uint64(0); n < 1000; n++ {
 		c.Insert(n, []byte("lorem ipsum dolor"))
 	}
 
-	snap := c.Snapshot()
+	snap := c
 
 	b.StartTimer()
 
-	newBatch := snap.Squash(0)
+	NewSnapshot := snap.Squash(0)
 
-	for iter := newBatch.Snapshot().Iterator(true); iter.HasNext(); {
+	for iter := NewSnapshot.Iterator(true); iter.HasNext(); {
 		iter.Value()
 	}
 }

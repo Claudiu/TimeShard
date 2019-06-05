@@ -2,6 +2,8 @@ package timeshard
 
 import (
 	"bytes"
+	"fmt"
+	"time"
 	"unicode/utf8"
 )
 
@@ -10,44 +12,45 @@ type Snapshot struct {
 }
 
 func NewSnapshot() *Snapshot {
-	return &Snapshot{Shard{
-		make([]byte, 0),
-		make([]uint64, 0),
-	},
+	return &Snapshot{
+		Shard{
+			make([]byte, 0),
+			make([]uint64, 0),
+		},
 	}
 }
 
-func (snap *Snapshot) Iterator(reverse bool) Iterator {
-	var iter Iterator
+func (snapshot *Snapshot) Iterator(reverse bool) Iterator {
+	var iterator Iterator
 
 	if reverse {
-		iter = &ReverseIterator{
-			over: snap,
+		iterator = &ReverseIterator{
+			over: snapshot,
 		}
 
-		iter.Init()
-		return iter
+		iterator.Init()
+		return iterator
 	}
 
-	iter = &ForwardIterator{
-		over: snap,
+	iterator = &ForwardIterator{
+		over: snapshot,
 	}
 
-	iter.Init()
-	return iter
+	iterator.Init()
+	return iterator
 }
 
-func (snap *Snapshot) LastActivity() uint64 {
-	data, _ := snap.Get(0, MetaTimestamp)
+func (snapshot *Snapshot) LastActivity() uint64 {
+	data, _ := snapshot.Get(0, MetaTimestamp)
 	return data
 }
 
-func (snap *Snapshot) Squash(count uint64) *Batch {
+func (snapshot *Snapshot) Squash(count uint64) *Snapshot {
 	//newSnap := NewEmpty()
 
 	mirror := ""
 
-	iter := snap.Iterator(false)
+	iter := snapshot.Iterator(false)
 
 	current := uint64(0)
 	for iter.HasNext() && (current < count || count == 0) {
@@ -79,8 +82,79 @@ func (snap *Snapshot) Squash(count uint64) *Batch {
 		current++
 	}
 
-	b := NewBatch()
+	b := NewSnapshot()
 	b.Insert(0, []byte(mirror))
 
 	return b
+}
+
+// add will add an operation into our Shard
+func (snapshot *Snapshot) add(rawBytes []byte, action, retain uint64) {
+	s, l := snapshot.pushData(&rawBytes)
+	snapshot.pushMeta(s, l, retain, OpInsert)
+}
+
+// Insert will add an OpInsert into our Shard
+func (snapshot *Snapshot) Insert(at uint64, rawBytes []byte) {
+	snapshot.add(rawBytes, OpInsert, at)
+}
+
+// Delete will add an OpDelete into our Shard
+// TODO: Use add
+func (snapshot *Snapshot) Delete(at uint64, count uint64) {
+	now := time.Now().UnixNano()
+
+	currentLength := uint64(len(snapshot.data))
+	data := []uint64{currentLength, count, OpDelete, at, uint64(now)}
+	snapshot.meta = append(snapshot.meta, data...)
+}
+
+// Clone will clone the current snapshot, useful for iterating
+func (snapshot *Snapshot) Clone() *Snapshot {
+	snap := NewSnapshot()
+
+	snap.Shard = Shard{
+		make([]byte, len(snapshot.data)),
+		make([]uint64, len(snapshot.meta)),
+	}
+
+	copy(snap.data, snapshot.data)
+	copy(snap.meta, snapshot.meta)
+
+	return snap
+}
+
+func (snapshot *Snapshot) applyCommits(otherSnapshot *Snapshot, target *Snapshot) (*Snapshot, error) {
+	if integrity := snapshot.assertIntegrity(); integrity {
+		return nil, fmt.Errorf("first Batch failed integrity check")
+	}
+
+	if integrity := otherSnapshot.assertIntegrity(); integrity {
+		return nil, fmt.Errorf("second Batch failed integrity check")
+	}
+
+	// Verify whether snapshot is older then otherSnapshot
+	first, last := &snapshot, &otherSnapshot
+	if snapshot.LastActivity() > otherSnapshot.LastActivity() {
+		first, last = &otherSnapshot, &snapshot
+	}
+
+	// Data does not need to be moved...
+	//for i := 0; i < len((*last).meta); i += MetaSize {
+	//	(*last).meta[i] += uint64(len((*first).data))
+	//}
+
+	dataMerged := append((*first).data, (*last).data...)
+	metaMerged := append((*first).meta, (*last).meta...)
+
+	var targetSnapshot *Snapshot
+
+	if target == nil {
+		targetSnapshot = NewSnapshot()
+	}
+
+	targetSnapshot.data = append(targetSnapshot.data, dataMerged...)
+	targetSnapshot.meta = append(targetSnapshot.meta, metaMerged...)
+
+	return targetSnapshot, nil
 }
