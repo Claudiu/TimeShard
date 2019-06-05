@@ -43,7 +43,7 @@ func (snapshot *Snapshot) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	localBatch := NewBatch()
+	localBatch := NewSnapshot()
 	for _, op := range temp {
 		if op.Insert != "" {
 			localBatch.Insert(op.Position, []byte(op.Insert))

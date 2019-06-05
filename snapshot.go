@@ -45,7 +45,7 @@ func (snapshot *Snapshot) LastActivity() uint64 {
 	return data
 }
 
-func (snapshot *Snapshot) Squash(count uint64) *Batch {
+func (snapshot *Snapshot) Squash(count uint64) *Snapshot {
 	//newSnap := NewEmpty()
 
 	mirror := ""
@@ -82,7 +82,7 @@ func (snapshot *Snapshot) Squash(count uint64) *Batch {
 		current++
 	}
 
-	b := NewBatch()
+	b := NewSnapshot()
 	b.Insert(0, []byte(mirror))
 
 	return b

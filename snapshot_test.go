@@ -6,7 +6,7 @@ import (
 )
 
 func TestSnapshot_MarshalJSON(t *testing.T) {
-	c := NewBatch()
+	c := NewSnapshot()
 	c.Insert(0, []byte("Gandalf"))
 	c.Insert(6, []byte(" the "))
 	c.Insert(11, []byte("Grey"))
