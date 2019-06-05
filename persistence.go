@@ -24,38 +24,59 @@ func (doc *Document) Write(file io.Writer) (int, error) {
 	return file.Write(out)
 }
 
-func (doc *Document) Save(filename string) error {
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0644)
-	defer file.Close()
+func (doc *Document) Save(filename string) (err error) {
+	var file *os.File
 
+	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 
-	if count, err := file.Write(fileSignature); err != nil || count != len(fileSignature) {
-		if count != len(fileSignature) {
-			return fmt.Errorf("written bytes differ from signature lenght")
+	// See: https://www.joeshaw.org/dont-defer-close-on-writable-files/
+	defer func() {
+		closeError := file.Close()
+		if err == nil {
+			err = closeError
 		}
+	}()
 
-		return err
+	var nBytes int
+	nBytes, err = file.Write(fileSignature)
+	if err != nil {
+		return
+	}
+
+	if nBytes != len(fileSignature) {
+		return fmt.Errorf("written bytes differ from signature lenght")
 	}
 
 	_, err = doc.Write(file)
+	if err != nil {
+		return
+	}
 
-	return err
+	return
 }
 
-func (doc *Document) FromFile(filename string) error {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0644)
-	defer file.Close()
+func (doc *Document) FromFile(filename string) (err error) {
+	var file *os.File
 
+	file, err = os.OpenFile(filename, os.O_RDONLY, 0644)
 	if err != nil {
 		return err
 	}
 
-	compressed, err := ioutil.ReadAll(file)
+	defer func() {
+		closeError := file.Close()
+		if err == nil {
+			err = closeError
+		}
+	}()
+
+	var compressed []byte
+	compressed, err = ioutil.ReadAll(file)
 	if err != nil {
-		return err
+		return
 	}
 
 	if bytes.Compare(compressed[:len(fileSignature)], fileSignature) != 0 {
