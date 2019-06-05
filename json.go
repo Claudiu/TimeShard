@@ -13,8 +13,8 @@ type JSONOperation struct {
 }
 
 // TODO: Unmarshal
-func (snap *Snapshot) MarshalJSON() ([]byte, error) {
-	iter := snap.Iterator(false)
+func (snapshot *Snapshot) MarshalJSON() ([]byte, error) {
+	iter := snapshot.Iterator(false)
 
 	var jsonOps []JSONOperation
 	for iter.HasNext() {
@@ -37,7 +37,7 @@ func (snap *Snapshot) MarshalJSON() ([]byte, error) {
 	return json.Marshal(jsonOps)
 }
 
-func (snap *Snapshot) UnmarshalJSON(data []byte) error {
+func (snapshot *Snapshot) UnmarshalJSON(data []byte) error {
 	var temp []JSONOperation
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
@@ -58,8 +58,8 @@ func (snap *Snapshot) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("could not unmarshal: unknown key")
 	}
 
-	copy(snap.meta, localBatch.meta)
-	copy(snap.data, localBatch.data)
+	snapshot.meta = localBatch.meta
+	snapshot.data = localBatch.data
 
 	return nil
 }

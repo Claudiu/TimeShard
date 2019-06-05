@@ -58,7 +58,7 @@ func (doc *Document) Save(filename string) (err error) {
 	return
 }
 
-func (doc *Document) FromFile(filename string) (err error) {
+func (doc *Document) Open(filename string) (err error) {
 	var file *os.File
 
 	file, err = os.OpenFile(filename, os.O_RDONLY, 0644)
@@ -79,11 +79,14 @@ func (doc *Document) FromFile(filename string) (err error) {
 		return
 	}
 
-	if bytes.Compare(compressed[:len(fileSignature)], fileSignature) != 0 {
+	sigBytes := compressed[:len(fileSignature)]
+	if bytes.Compare(sigBytes, fileSignature) != 0 {
 		return fmt.Errorf("corupted filed or invalid format")
 	}
 
-	return doc.FromBytes(compressed[len(fileSignature):])
+	dataBytes := compressed[len(fileSignature):]
+
+	return doc.FromBytes(dataBytes)
 }
 
 func (doc *Document) FromBytes(compressed []byte) (err error) {
@@ -92,7 +95,10 @@ func (doc *Document) FromBytes(compressed []byte) (err error) {
 		return err
 	}
 
-	temp := &Document{}
+	temp := &Document{
+		Operations: *NewSnapshot(),
+	}
+
 	if err := json.Unmarshal(decompressed, &temp); err != nil {
 		return err
 	}

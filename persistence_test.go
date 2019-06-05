@@ -1,7 +1,7 @@
 package timeshard
 
 import (
-	"fmt"
+	"bytes"
 	"testing"
 )
 
@@ -28,15 +28,16 @@ func TestDocument_Save(t *testing.T) {
 	}
 
 	d2 := &Document{Operations: *NewSnapshot()}
-	if err := d2.FromFile("save_test"); err != nil {
+	if err := d2.Open("save_test"); err != nil {
 		t.Log(err.Error())
 		t.Fail()
 	}
 
-	// TODO: Fix empty slice
-	fmt.Println(d2)
+	if d2.Operations.Len() != 1 {
+		t.Fail()
+	}
 
-	if !d2.Operations.IsEmpty() {
+	if bytes.Compare(d2.Operations.data, d.Operations.data) != 0 {
 		t.Fail()
 	}
 }
