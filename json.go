@@ -12,8 +12,8 @@ type JSONOperation struct {
 	Delete   uint64 `json:"delete,omitempty"`
 }
 
-func (snapshot *Snapshot) MarshalJSON() ([]byte, error) {
-	iter := snapshot.Iterator(false)
+func (block *Block) MarshalJSON() ([]byte, error) {
+	iter := block.Iterator(false)
 
 	var jsonOps []JSONOperation
 	for iter.HasNext() {
@@ -36,13 +36,13 @@ func (snapshot *Snapshot) MarshalJSON() ([]byte, error) {
 	return json.Marshal(jsonOps)
 }
 
-func (snapshot *Snapshot) UnmarshalJSON(data []byte) error {
+func (block *Block) UnmarshalJSON(data []byte) error {
 	var temp []JSONOperation
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
 	}
 
-	localBatch := NewSnapshot()
+	localBatch := NewBlock()
 	for _, op := range temp {
 		if op.Insert != "" {
 			localBatch.Insert(op.Position, []byte(op.Insert))
@@ -57,8 +57,8 @@ func (snapshot *Snapshot) UnmarshalJSON(data []byte) error {
 		return errors.New("could not unmarshal: unknown key")
 	}
 
-	snapshot.meta = localBatch.meta
-	snapshot.data = localBatch.data
+	block.meta = localBatch.meta
+	block.data = localBatch.data
 
 	return nil
 }

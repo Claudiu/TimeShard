@@ -8,13 +8,13 @@ import (
 	"unicode/utf8"
 )
 
-type Snapshot struct {
+type Block struct {
 	Shard
 	sync.Mutex
 }
 
-func NewSnapshot() *Snapshot {
-	return &Snapshot{
+func NewBlock() *Block {
+	return &Block{
 		Shard: Shard{
 			make([]byte, 0),
 			make([]uint64, 0),
@@ -23,12 +23,12 @@ func NewSnapshot() *Snapshot {
 	}
 }
 
-func (snapshot *Snapshot) Iterator(reverse bool) Iterator {
+func (block *Block) Iterator(reverse bool) Iterator {
 	var iterator Iterator
 
 	if reverse {
 		iterator = &ReverseIterator{
-			over: snapshot.Clone(),
+			over: block.Clone(),
 		}
 
 		iterator.Init()
@@ -36,24 +36,24 @@ func (snapshot *Snapshot) Iterator(reverse bool) Iterator {
 	}
 
 	iterator = &ForwardIterator{
-		over: snapshot.Clone(),
+		over: block.Clone(),
 	}
 
 	iterator.Init()
 	return iterator
 }
 
-func (snapshot *Snapshot) LastActivity() uint64 {
-	data, _ := snapshot.Get(0, MetaTimestamp)
+func (block *Block) LastActivity() uint64 {
+	data, _ := block.Get(0, MetaTimestamp)
 	return data
 }
 
-func (snapshot *Snapshot) Squash(count uint64) *Snapshot {
+func (block *Block) Squash(count uint64) *Block {
 	//newSnap := NewEmpty()
 
 	mirror := ""
 
-	iter := snapshot.Iterator(false)
+	iter := block.Iterator(false)
 
 	current := uint64(0)
 	for iter.HasNext() && (current < count || count == 0) {
@@ -85,66 +85,66 @@ func (snapshot *Snapshot) Squash(count uint64) *Snapshot {
 		current++
 	}
 
-	b := NewSnapshot()
+	b := NewBlock()
 	b.Insert(0, []byte(mirror))
 
 	return b
 }
 
 // add will add an operation into our Shard
-func (snapshot *Snapshot) add(rawBytes []byte, action, retain uint64) {
-	snapshot.Lock()
-	defer snapshot.Unlock()
+func (block *Block) add(rawBytes []byte, action, retain uint64) {
+	block.Lock()
+	defer block.Unlock()
 
 	var s, l uint64
-	if foundIndex := bytes.Index(snapshot.data, rawBytes); foundIndex != -1 {
+	if foundIndex := bytes.Index(block.data, rawBytes); foundIndex != -1 {
 		s = uint64(foundIndex)
 		l = uint64(len(rawBytes))
 	} else {
-		s, l = snapshot.pushData(&rawBytes)
+		s, l = block.pushData(&rawBytes)
 	}
 
-	snapshot.pushMeta(s, l, retain, OpInsert)
+	block.pushMeta(s, l, retain, OpInsert)
 }
 
 // Insert will add an OpInsert into our Shard
-func (snapshot *Snapshot) Insert(at uint64, rawBytes []byte) {
-	snapshot.add(rawBytes, OpInsert, at)
+func (block *Block) Insert(at uint64, rawBytes []byte) {
+	block.add(rawBytes, OpInsert, at)
 }
 
 // Delete will add an OpDelete into our Shard
 // TODO: Use add
-func (snapshot *Snapshot) Delete(at uint64, count uint64) {
-	snapshot.Lock()
-	defer snapshot.Unlock()
+func (block *Block) Delete(at uint64, count uint64) {
+	block.Lock()
+	defer block.Unlock()
 
 	now := time.Now().UnixNano()
 
-	currentLength := uint64(len(snapshot.data))
+	currentLength := uint64(len(block.data))
 	data := []uint64{currentLength, count, OpDelete, at, uint64(now)}
-	snapshot.meta = append(snapshot.meta, data...)
+	block.meta = append(block.meta, data...)
 }
 
 // Clone will clone the current snapshot, useful for iterating
-func (snapshot *Snapshot) Clone() *Snapshot {
-	snapshot.Lock()
-	defer snapshot.Unlock()
+func (block *Block) Clone() *Block {
+	block.Lock()
+	defer block.Unlock()
 
-	snap := NewSnapshot()
+	localBlock := NewBlock()
 
-	snap.Shard = Shard{
-		make([]byte, len(snapshot.data)),
-		make([]uint64, len(snapshot.meta)),
+	localBlock.Shard = Shard{
+		make([]byte, len(block.data)),
+		make([]uint64, len(block.meta)),
 	}
 
-	copy(snap.data, snapshot.data)
-	copy(snap.meta, snapshot.meta)
+	copy(localBlock.data, block.data)
+	copy(localBlock.meta, block.meta)
 
-	return snap
+	return localBlock
 }
 
 // Will merge the instructions from two Snapshots
-func Merge(src *Snapshot, dst *Snapshot) (*Snapshot, error) {
+func Merge(src *Block, dst *Block) (*Block, error) {
 	if integrity := src.assertIntegrity(); integrity {
 		return nil, errors.New("first Batch failed integrity check")
 	}
@@ -167,10 +167,10 @@ func Merge(src *Snapshot, dst *Snapshot) (*Snapshot, error) {
 	dataMerged := append((*first).data, (*last).data...)
 	metaMerged := append((*first).meta, (*last).meta...)
 
-	var targetSnapshot *Snapshot
+	var targetSnapshot *Block
 
 	if dst == nil {
-		targetSnapshot = NewSnapshot()
+		targetSnapshot = NewBlock()
 	} else {
 		targetSnapshot = dst
 	}

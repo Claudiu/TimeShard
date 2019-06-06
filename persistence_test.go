@@ -17,7 +17,7 @@ o do this becuase the rights had becom much less valuable, and he had indeed the
 in quedtion were.`
 
 func TestDocument_Save(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 	c.Insert(0, []byte(TestString))
 
 	d := &Document{
@@ -29,7 +29,7 @@ func TestDocument_Save(t *testing.T) {
 		t.Fail()
 	}
 
-	d2 := &Document{Operations: *NewSnapshot()}
+	d2 := &Document{Operations: *NewBlock()}
 	if err := d2.Open("save_test"); err != nil {
 		t.Log(err.Error())
 		t.Fail()

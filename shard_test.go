@@ -3,7 +3,7 @@ package timeshard
 import "testing"
 
 func TestShard_Len(t *testing.T) {
-	snap := NewSnapshot()
+	snap := NewBlock()
 	snap.Insert(0, []byte{})
 	snap.Delete(0, 1)
 
@@ -13,7 +13,7 @@ func TestShard_Len(t *testing.T) {
 }
 
 func TestShard_Get(t *testing.T) {
-	snap := NewSnapshot()
+	snap := NewBlock()
 	snap.Insert(0, []byte{})
 	snap.Delete(0, 1)
 
@@ -23,7 +23,7 @@ func TestShard_Get(t *testing.T) {
 }
 
 func TestShard_IsEmpty(t *testing.T) {
-	snap := NewSnapshot()
+	snap := NewBlock()
 
 	if snap.IsEmpty() != true {
 		t.Fail()

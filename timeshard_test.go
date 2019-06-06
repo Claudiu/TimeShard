@@ -5,7 +5,7 @@ import (
 )
 
 func TestForwardIterator_Retain(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 	c.Insert(200, []byte("Sample text"))
 	c.Insert(500, []byte("Sample text"))
 
@@ -21,7 +21,7 @@ func TestForwardIterator_Retain(t *testing.T) {
 }
 
 func TestReverseIterator_Retain(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 	c.Insert(200, []byte("Sample text"))
 	c.Insert(500, []byte("Sample text"))
 
@@ -37,7 +37,7 @@ func TestReverseIterator_Retain(t *testing.T) {
 }
 
 func TestSnapshot_Squash(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 
 	c.Insert(0, []byte("a"))
 	c.Insert(1, []byte("l"))
@@ -57,7 +57,7 @@ func TestSnapshot_Squash(t *testing.T) {
 }
 
 func TestSnapshot_SquashIssue1(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 
 	c.Insert(0, []byte("alb"))
 	c.Insert(1, []byte("a"))
@@ -75,7 +75,7 @@ func TestSnapshot_SquashIssue1(t *testing.T) {
 }
 
 func TestSnapshot_SquashEmoji(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 
 	c.Insert(0, []byte("😀"))
 	c.Insert(1, []byte("a"))
@@ -93,7 +93,7 @@ func TestSnapshot_SquashEmoji(t *testing.T) {
 }
 
 func TestBatch_Delete(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 
 	c.Insert(0, []byte("alb"))
 	c.Insert(3, []byte("a"))
@@ -113,7 +113,7 @@ func TestBatch_Delete(t *testing.T) {
 }
 
 func TestBatch_DeleteOutOfBounds(t *testing.T) {
-	c := NewSnapshot()
+	c := NewBlock()
 
 	c.Insert(0, []byte("a"))
 	c.Insert(1, []byte("l"))
@@ -137,7 +137,7 @@ func TestBatch_DeleteOutOfBounds(t *testing.T) {
 
 func BenchmarkBatch_Insert(b *testing.B) {
 	b.StopTimer()
-	c := NewSnapshot()
+	c := NewBlock()
 
 	b.StartTimer()
 
@@ -148,7 +148,7 @@ func BenchmarkBatch_Insert(b *testing.B) {
 
 func BenchmarkBatch_Squash(b *testing.B) {
 	b.StopTimer()
-	c := NewSnapshot()
+	c := NewBlock()
 
 	for n := uint64(0); n < 1000; n++ {
 		c.Insert(n, []byte("lorem ipsum dolor"))
@@ -165,7 +165,7 @@ func BenchmarkBatch_Squash(b *testing.B) {
 
 func BenchmarkBatch_SquashReverse(b *testing.B) {
 	b.StopTimer()
-	c := NewSnapshot()
+	c := NewBlock()
 
 	for n := uint64(0); n < 1000; n++ {
 		c.Insert(n, []byte("lorem ipsum dolor"))

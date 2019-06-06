@@ -107,7 +107,7 @@ func (doc *Document) Open(filename string) (err error) {
 
 	sigBytes := compressed[:len(fileSignature)]
 	if bytes.Compare(sigBytes, fileSignature) != 0 {
-		return errors.New("corupted filed or invalid format")
+		return errors.New("corrupted filed or invalid format")
 	}
 
 	dataBytes := compressed[crc32Bytes+len(fileSignature):]
@@ -127,7 +127,7 @@ func (doc *Document) FromBytes(compressed []byte) (err error) {
 	}
 
 	temp := &Document{
-		Operations: *NewSnapshot(),
+		Operations: *NewBlock(),
 	}
 
 	if err := json.Unmarshal(decompressed, &temp); err != nil {

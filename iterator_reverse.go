@@ -2,7 +2,7 @@ package timeshard
 
 type ReverseIterator struct {
 	pos  int64
-	over *Snapshot
+	over *Block
 }
 
 func (it *ReverseIterator) Init() {

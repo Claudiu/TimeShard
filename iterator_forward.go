@@ -2,7 +2,7 @@ package timeshard
 
 type ForwardIterator struct {
 	pos  int64
-	over *Snapshot
+	over *Block
 }
 
 func (it *ForwardIterator) Init() {
