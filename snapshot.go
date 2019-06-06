@@ -25,7 +25,7 @@ func (snapshot *Snapshot) Iterator(reverse bool) Iterator {
 
 	if reverse {
 		iterator = &ReverseIterator{
-			over: snapshot,
+			over: snapshot.Clone(),
 		}
 
 		iterator.Init()
@@ -33,7 +33,7 @@ func (snapshot *Snapshot) Iterator(reverse bool) Iterator {
 	}
 
 	iterator = &ForwardIterator{
-		over: snapshot,
+		over: snapshot.Clone(),
 	}
 
 	iterator.Init()
