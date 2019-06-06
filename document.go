@@ -30,3 +30,13 @@ func (doc *Document) Delete(at uint64, count uint64) *Document {
 	doc.Operations.Delete(at, count)
 	return doc
 }
+
+func (doc *Document) Each(evalFunc func(current Iterator) bool) *Document {
+	for iter := doc.Operations.Iterator(false); iter.HasNext(); {
+		if evalFunc(iter) != true {
+			break
+		}
+	}
+
+	return doc
+}
