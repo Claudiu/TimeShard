@@ -96,7 +96,14 @@ func (snapshot *Snapshot) add(rawBytes []byte, action, retain uint64) {
 	snapshot.Lock()
 	defer snapshot.Unlock()
 
-	s, l := snapshot.pushData(&rawBytes)
+	var s, l uint64
+	if foundIndex := bytes.Index(snapshot.data, rawBytes); foundIndex != -1 {
+		s = uint64(foundIndex)
+		l = uint64(len(rawBytes))
+	} else {
+		s, l = snapshot.pushData(&rawBytes)
+	}
+
 	snapshot.pushMeta(s, l, retain, OpInsert)
 }
 
