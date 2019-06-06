@@ -2,15 +2,29 @@ package timeshard
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"github.com/golang/snappy"
+	"hash/crc32"
 	"io"
 	"io/ioutil"
 	"os"
 )
 
 var fileSignature = []byte("application/timeshard")
+var crc32Table = crc32.MakeTable(crc32.Koopman)
+
+const crc32Bytes = 8
+
+func computeCRC32(b []byte) []byte {
+	crcSum := crc32.Checksum(b, crc32Table)
+
+	crcBytes := make([]byte, crc32Bytes)
+	binary.LittleEndian.PutUint32(crcBytes, crcSum)
+
+	return crcBytes
+}
 
 func (doc *Document) Write(file io.Writer) (int, error) {
 	b, err := json.Marshal(&doc)
@@ -50,7 +64,19 @@ func (doc *Document) Save(filename string) (err error) {
 		return fmt.Errorf("written bytes differ from signature lenght")
 	}
 
-	_, err = doc.Write(file)
+	var buf bytes.Buffer
+	_, err = doc.Write(&buf)
+	if err != nil {
+		return
+	}
+
+	// we compute a CRC32 Sum using CRC32.Koopman
+	_, err = file.Write(computeCRC32(buf.Bytes()))
+	if err != nil {
+		return
+	}
+
+	_, err = file.Write(buf.Bytes())
 	if err != nil {
 		return
 	}
@@ -84,7 +110,12 @@ func (doc *Document) Open(filename string) (err error) {
 		return fmt.Errorf("corupted filed or invalid format")
 	}
 
-	dataBytes := compressed[len(fileSignature):]
+	dataBytes := compressed[crc32Bytes+len(fileSignature):]
+
+	crc32FromFile := compressed[len(fileSignature) : len(fileSignature)+crc32Bytes]
+	if bytes.Compare(crc32FromFile, computeCRC32(dataBytes)) != 0 {
+		return fmt.Errorf("CRC32 hash mismatch")
+	}
 
 	return doc.FromBytes(dataBytes)
 }
