@@ -3,20 +3,23 @@ package timeshard
 import (
 	"bytes"
 	"errors"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
 
 type Snapshot struct {
 	Shard
+	sync.Mutex
 }
 
 func NewSnapshot() *Snapshot {
 	return &Snapshot{
-		Shard{
+		Shard: Shard{
 			make([]byte, 0),
 			make([]uint64, 0),
 		},
+		Mutex: sync.Mutex{},
 	}
 }
 
@@ -90,6 +93,9 @@ func (snapshot *Snapshot) Squash(count uint64) *Snapshot {
 
 // add will add an operation into our Shard
 func (snapshot *Snapshot) add(rawBytes []byte, action, retain uint64) {
+	snapshot.Lock()
+	defer snapshot.Unlock()
+
 	s, l := snapshot.pushData(&rawBytes)
 	snapshot.pushMeta(s, l, retain, OpInsert)
 }
@@ -102,6 +108,9 @@ func (snapshot *Snapshot) Insert(at uint64, rawBytes []byte) {
 // Delete will add an OpDelete into our Shard
 // TODO: Use add
 func (snapshot *Snapshot) Delete(at uint64, count uint64) {
+	snapshot.Lock()
+	defer snapshot.Unlock()
+
 	now := time.Now().UnixNano()
 
 	currentLength := uint64(len(snapshot.data))
@@ -111,6 +120,9 @@ func (snapshot *Snapshot) Delete(at uint64, count uint64) {
 
 // Clone will clone the current snapshot, useful for iterating
 func (snapshot *Snapshot) Clone() *Snapshot {
+	snapshot.Lock()
+	defer snapshot.Unlock()
+
 	snap := NewSnapshot()
 
 	snap.Shard = Shard{

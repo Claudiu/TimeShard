@@ -12,7 +12,6 @@ type JSONOperation struct {
 	Delete   uint64 `json:"delete,omitempty"`
 }
 
-// TODO: Unmarshal
 func (snapshot *Snapshot) MarshalJSON() ([]byte, error) {
 	iter := snapshot.Iterator(false)
 
