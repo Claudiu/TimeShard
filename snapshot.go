@@ -143,19 +143,20 @@ func (snapshot *Snapshot) Clone() *Snapshot {
 	return snap
 }
 
-func (snapshot *Snapshot) applyCommits(otherSnapshot *Snapshot, target *Snapshot) (*Snapshot, error) {
-	if integrity := snapshot.assertIntegrity(); integrity {
+// Will merge the instructions from two Snapshots
+func Merge(src *Snapshot, dst *Snapshot) (*Snapshot, error) {
+	if integrity := src.assertIntegrity(); integrity {
 		return nil, errors.New("first Batch failed integrity check")
 	}
 
-	if integrity := otherSnapshot.assertIntegrity(); integrity {
+	if integrity := dst.assertIntegrity(); integrity {
 		return nil, errors.New("second Batch failed integrity check")
 	}
 
-	// Verify whether snapshot is older then otherSnapshot
-	first, last := &snapshot, &otherSnapshot
-	if snapshot.LastActivity() > otherSnapshot.LastActivity() {
-		first, last = &otherSnapshot, &snapshot
+	// Verify whether src is older then dst
+	first, last := &src, &dst
+	if src.LastActivity() > dst.LastActivity() {
+		first, last = &dst, &src
 	}
 
 	// Data does not need to be moved...
@@ -168,8 +169,10 @@ func (snapshot *Snapshot) applyCommits(otherSnapshot *Snapshot, target *Snapshot
 
 	var targetSnapshot *Snapshot
 
-	if target == nil {
+	if dst == nil {
 		targetSnapshot = NewSnapshot()
+	} else {
+		targetSnapshot = dst
 	}
 
 	targetSnapshot.data = append(targetSnapshot.data, dataMerged...)
