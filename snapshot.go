@@ -2,7 +2,7 @@ package timeshard
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"time"
 	"unicode/utf8"
 )
@@ -126,11 +126,11 @@ func (snapshot *Snapshot) Clone() *Snapshot {
 
 func (snapshot *Snapshot) applyCommits(otherSnapshot *Snapshot, target *Snapshot) (*Snapshot, error) {
 	if integrity := snapshot.assertIntegrity(); integrity {
-		return nil, fmt.Errorf("first Batch failed integrity check")
+		return nil, errors.New("first Batch failed integrity check")
 	}
 
 	if integrity := otherSnapshot.assertIntegrity(); integrity {
-		return nil, fmt.Errorf("second Batch failed integrity check")
+		return nil, errors.New("second Batch failed integrity check")
 	}
 
 	// Verify whether snapshot is older then otherSnapshot

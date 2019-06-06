@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"github.com/golang/snappy"
 	"hash/crc32"
 	"io"
@@ -61,7 +61,7 @@ func (doc *Document) Save(filename string) (err error) {
 	}
 
 	if nBytes != len(fileSignature) {
-		return fmt.Errorf("written bytes differ from signature lenght")
+		return errors.New("written bytes differ from signature length")
 	}
 
 	var buf bytes.Buffer
@@ -107,14 +107,14 @@ func (doc *Document) Open(filename string) (err error) {
 
 	sigBytes := compressed[:len(fileSignature)]
 	if bytes.Compare(sigBytes, fileSignature) != 0 {
-		return fmt.Errorf("corupted filed or invalid format")
+		return errors.New("corupted filed or invalid format")
 	}
 
 	dataBytes := compressed[crc32Bytes+len(fileSignature):]
 
 	crc32FromFile := compressed[len(fileSignature) : len(fileSignature)+crc32Bytes]
 	if bytes.Compare(crc32FromFile, computeCRC32(dataBytes)) != 0 {
-		return fmt.Errorf("CRC32 hash mismatch")
+		return errors.New("CRC32 hash mismatch")
 	}
 
 	return doc.FromBytes(dataBytes)

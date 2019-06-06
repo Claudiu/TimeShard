@@ -3,7 +3,7 @@ package timeshard
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 )
 
 type JSONOperation struct {
@@ -55,7 +55,7 @@ func (snapshot *Snapshot) UnmarshalJSON(data []byte) error {
 			continue
 		}
 
-		return fmt.Errorf("could not unmarshal: unknown key")
+		return errors.New("could not unmarshal: unknown key")
 	}
 
 	snapshot.meta = localBatch.meta
