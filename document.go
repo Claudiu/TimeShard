@@ -5,3 +5,28 @@ type Document struct {
 	Operations Snapshot          `json:"ops"`
 	Meta       map[string]string `json:"meta"`
 }
+
+// Bytes returns a slice of length b.Len() holding the end result of our operations
+func (doc *Document) Bytes() []byte {
+	squashed := doc.Operations.Squash(0)
+	for iter := squashed.Iterator(true); iter.HasNext(); {
+		return iter.Value()
+	}
+
+	return []byte{}
+}
+
+// String returns the contents of the document as a string
+func (doc *Document) String() string {
+	return string(doc.Bytes())
+}
+
+func (doc *Document) Insert(at uint64, rawBytes []byte) *Document {
+	doc.Operations.Insert(at, rawBytes)
+	return doc
+}
+
+func (doc *Document) Delete(at uint64, count uint64) *Document {
+	doc.Operations.Delete(at, count)
+	return doc
+}
