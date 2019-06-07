@@ -6,6 +6,14 @@ type Document struct {
 	Meta       map[string]string `json:"meta"`
 }
 
+func NewDocument() Document {
+	return Document{
+		Title:      "Untitled document",
+		Operations: *NewBlock(),
+		Meta:       map[string]string{},
+	}
+}
+
 // Bytes returns a slice of length b.Len() holding the end result of our operations
 func (doc *Document) Bytes() []byte {
 	squashed := doc.Operations.Squash(0)

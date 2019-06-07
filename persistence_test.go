@@ -17,25 +17,23 @@ o do this becuase the rights had becom much less valuable, and he had indeed the
 in quedtion were.`
 
 func TestDocument_Save(t *testing.T) {
-	c := NewBlock()
-	c.Insert(0, []byte(TestString))
-
-	d := &Document{
-		Operations: *c,
-	}
+	d := NewDocument()
+	d.Insert(0, []byte(TestString))
+	d.Delete(10, 10)
+	d.Insert(2, []byte("da"))
 
 	if err := d.Save("save_test"); err != nil {
 		t.Log(err.Error())
 		t.Fail()
 	}
 
-	d2 := &Document{Operations: *NewBlock()}
+	d2 := NewDocument()
 	if err := d2.Open("save_test"); err != nil {
 		t.Log(err.Error())
 		t.Fail()
 	}
 
-	if d2.Operations.Len() != 1 {
+	if d2.Operations.Len() != 3 {
 		t.Fail()
 	}
 

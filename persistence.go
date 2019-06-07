@@ -134,7 +134,8 @@ func (doc *Document) FromBytes(compressed []byte) (err error) {
 		return err
 	}
 
-	doc.Operations = temp.Operations
+	doc.Operations.data = temp.Operations.data
+	doc.Operations.meta = temp.Operations.meta
 
 	return nil
 }
