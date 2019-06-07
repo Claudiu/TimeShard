@@ -1,5 +1,7 @@
 package timeshard
 
+import "time"
+
 type Document struct {
 	Title      string            `json:"title"`
 	Operations Block             `json:"ops"`
@@ -12,6 +14,12 @@ func NewDocument() Document {
 		Operations: *NewBlock(),
 		Meta:       map[string]string{},
 	}
+}
+
+func (doc *Document) UpdatedAt() time.Time {
+	// hope I see the day, an unix timestamp reaches 9223372036854775807
+	unixNano := int64(doc.Operations.LastActivity())
+	return time.Unix(0, unixNano)
 }
 
 // Bytes returns a slice of length b.Len() holding the end result of our operations
@@ -29,8 +37,8 @@ func (doc *Document) String() string {
 	return string(doc.Bytes())
 }
 
-func (doc *Document) Insert(at uint64, rawBytes []byte) *Document {
-	doc.Operations.Insert(at, rawBytes)
+func (doc *Document) Insert(at uint64, rawBytes []byte, formats ...Format) *Document {
+	doc.Operations.Insert(at, rawBytes, formats)
 	return doc
 }
 

@@ -86,30 +86,30 @@ func (block *Block) Squash(count uint64) *Block {
 	}
 
 	b := NewBlock()
-	b.Insert(0, []byte(mirror))
+	b.Insert(0, []byte(mirror), nil)
 
 	return b
 }
 
 // add will add an operation into our Shard
-func (block *Block) add(rawBytes []byte, action, retain uint64) {
+func (block *Block) add(rawBytes []byte, action, retain, formatStart, formatEnd uint64) {
 	block.Lock()
 	defer block.Unlock()
 
 	var s, l uint64
-	if foundIndex := bytes.Index(block.data, rawBytes); foundIndex != -1 {
-		s = uint64(foundIndex)
-		l = uint64(len(rawBytes))
-	} else {
-		s, l = block.pushData(&rawBytes)
-	}
+	//if foundIndex := bytes.Index(block.data, rawBytes); foundIndex != -1 {
+	//	s = uint64(foundIndex)
+	//	l = uint64(len(rawBytes))
+	//} else {
+	s, l = block.pushData(&rawBytes)
+	//}
 
-	block.pushMeta(s, l, retain, OpInsert)
+	block.pushMeta(s, l, retain, 0, 0, OpInsert)
 }
 
 // Insert will add an OpInsert into our Shard
-func (block *Block) Insert(at uint64, rawBytes []byte) {
-	block.add(rawBytes, OpInsert, at)
+func (block *Block) Insert(at uint64, rawBytes []byte, formats []Format) {
+	block.add(rawBytes, OpInsert, at, 0, 0)
 }
 
 // Delete will add an OpDelete into our Shard
@@ -121,7 +121,7 @@ func (block *Block) Delete(at uint64, count uint64) {
 	now := time.Now().UnixNano()
 
 	currentLength := uint64(len(block.data))
-	data := []uint64{currentLength, count, OpDelete, at, uint64(now)}
+	data := []uint64{currentLength, count, OpDelete, at, 0, 0, uint64(now)}
 	block.meta = append(block.meta, data...)
 }
 

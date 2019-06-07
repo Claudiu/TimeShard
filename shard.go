@@ -26,6 +26,12 @@ const (
 	// How many runes to skip
 	MetaRetain
 
+	// Start of formatting, index of []byte from the data slice
+	MetaFormatIndex
+
+	// End of formatting, index of []byte from the data slice
+	MetaFormatByteSize
+
 	// When was the action triggered, used for sorting and keeping data integrity
 	MetaTimestamp
 )
@@ -39,7 +45,7 @@ const (
 )
 
 // The size of our Meta
-const MetaSize = 5
+const MetaSize = 7
 
 func NewShard() Shard {
 	newShard := Shard{
@@ -114,7 +120,7 @@ func (s *Shard) pushData(b *[]byte) (dataStart, dataLength uint64) {
 	return
 }
 
-func (s *Shard) pushMeta(start, l, retain, action uint64) {
+func (s *Shard) pushMeta(start, l, retain, formatStart, formatEnd, action uint64) {
 	now := time.Now().UnixNano()
-	heap.Push(s, []uint64{start, l, action, retain, uint64(now)})
+	heap.Push(s, []uint64{start, l, action, retain, formatStart, formatEnd, uint64(now)})
 }

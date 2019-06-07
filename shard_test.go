@@ -4,7 +4,7 @@ import "testing"
 
 func TestShard_Len(t *testing.T) {
 	snap := NewBlock()
-	snap.Insert(0, []byte{})
+	snap.Insert(0, []byte{}, nil)
 	snap.Delete(0, 1)
 
 	if snap.Len() != 2 {
@@ -14,7 +14,7 @@ func TestShard_Len(t *testing.T) {
 
 func TestShard_Get(t *testing.T) {
 	snap := NewBlock()
-	snap.Insert(0, []byte{})
+	snap.Insert(0, []byte{}, nil)
 	snap.Delete(0, 1)
 
 	if val, ok := snap.Get(0, MetaOperation); val != OpInsert && ok != true {

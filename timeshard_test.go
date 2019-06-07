@@ -6,8 +6,8 @@ import (
 
 func TestForwardIterator_Retain(t *testing.T) {
 	c := NewBlock()
-	c.Insert(200, []byte("Sample text"))
-	c.Insert(500, []byte("Sample text"))
+	c.Insert(200, []byte("Sample text"), nil)
+	c.Insert(500, []byte("Sample text"), nil)
 
 	iter := c.Iterator(false)
 
@@ -22,8 +22,8 @@ func TestForwardIterator_Retain(t *testing.T) {
 
 func TestReverseIterator_Retain(t *testing.T) {
 	c := NewBlock()
-	c.Insert(200, []byte("Sample text"))
-	c.Insert(500, []byte("Sample text"))
+	c.Insert(200, []byte("Sample text"), nil)
+	c.Insert(500, []byte("Sample text"), nil)
 
 	iter := c.Iterator(true)
 
@@ -39,14 +39,14 @@ func TestReverseIterator_Retain(t *testing.T) {
 func TestSnapshot_Squash(t *testing.T) {
 	c := NewBlock()
 
-	c.Insert(0, []byte("a"))
-	c.Insert(1, []byte("l"))
-	c.Insert(2, []byte("b"))
-	c.Insert(3, []byte("a"))
-	c.Insert(4, []byte("t"))
-	c.Insert(5, []byte("r"))
-	c.Insert(6, []byte("o"))
-	c.Insert(7, []byte("s"))
+	c.Insert(0, []byte("a"), nil)
+	c.Insert(1, []byte("l"), nil)
+	c.Insert(2, []byte("b"), nil)
+	c.Insert(3, []byte("a"), nil)
+	c.Insert(4, []byte("t"), nil)
+	c.Insert(5, []byte("r"), nil)
+	c.Insert(6, []byte("o"), nil)
+	c.Insert(7, []byte("s"), nil)
 
 	iter := c.Squash(0).Iterator(true)
 	for iter.HasNext() {
@@ -59,12 +59,12 @@ func TestSnapshot_Squash(t *testing.T) {
 func TestSnapshot_SquashIssue1(t *testing.T) {
 	c := NewBlock()
 
-	c.Insert(0, []byte("alb"))
-	c.Insert(1, []byte("a"))
-	c.Insert(2, []byte("t"))
-	c.Insert(3, []byte("r"))
-	c.Insert(4, []byte("o"))
-	c.Insert(5, []byte("s"))
+	c.Insert(0, []byte("alb"), nil)
+	c.Insert(1, []byte("a"), nil)
+	c.Insert(2, []byte("t"), nil)
+	c.Insert(3, []byte("r"), nil)
+	c.Insert(4, []byte("o"), nil)
+	c.Insert(5, []byte("s"), nil)
 
 	iter := c.Squash(1).Iterator(true)
 	for iter.HasNext() {
@@ -77,12 +77,12 @@ func TestSnapshot_SquashIssue1(t *testing.T) {
 func TestSnapshot_SquashEmoji(t *testing.T) {
 	c := NewBlock()
 
-	c.Insert(0, []byte("😀"))
-	c.Insert(1, []byte("a"))
-	c.Insert(2, []byte("t"))
-	c.Insert(3, []byte("r"))
-	c.Insert(4, []byte("o"))
-	c.Insert(5, []byte("s"))
+	c.Insert(0, []byte("😀"), nil)
+	c.Insert(1, []byte("a"), nil)
+	c.Insert(2, []byte("t"), nil)
+	c.Insert(3, []byte("r"), nil)
+	c.Insert(4, []byte("o"), nil)
+	c.Insert(5, []byte("s"), nil)
 
 	iter := c.Squash(1).Iterator(true)
 	for iter.HasNext() {
@@ -95,12 +95,12 @@ func TestSnapshot_SquashEmoji(t *testing.T) {
 func TestBatch_Delete(t *testing.T) {
 	c := NewBlock()
 
-	c.Insert(0, []byte("alb"))
-	c.Insert(3, []byte("a"))
-	c.Insert(4, []byte("t"))
-	c.Insert(5, []byte("r"))
-	c.Insert(6, []byte("o"))
-	c.Insert(7, []byte("s"))
+	c.Insert(0, []byte("alb"), nil)
+	c.Insert(3, []byte("a"), nil)
+	c.Insert(4, []byte("t"), nil)
+	c.Insert(5, []byte("r"), nil)
+	c.Insert(6, []byte("o"), nil)
+	c.Insert(7, []byte("s"), nil)
 
 	c.Delete(0, 3)
 
@@ -115,16 +115,16 @@ func TestBatch_Delete(t *testing.T) {
 func TestBatch_DeleteOutOfBounds(t *testing.T) {
 	c := NewBlock()
 
-	c.Insert(0, []byte("a"))
-	c.Insert(1, []byte("l"))
-	c.Insert(2, []byte("b"))
-	c.Insert(3, []byte("a"))
-	c.Insert(4, []byte("t"))
-	c.Insert(5, []byte("r"))
-	c.Insert(6, []byte("o"))
-	c.Insert(7, []byte("s"))
+	c.Insert(0, []byte("a"), nil)
+	c.Insert(1, []byte("l"), nil)
+	c.Insert(2, []byte("b"), nil)
+	c.Insert(3, []byte("a"), nil)
+	c.Insert(4, []byte("t"), nil)
+	c.Insert(5, []byte("r"), nil)
+	c.Insert(6, []byte("o"), nil)
+	c.Insert(7, []byte("s"), nil)
 	c.Delete(0, 3000)
-	c.Insert(0, []byte("imi plac merele"))
+	c.Insert(0, []byte("imi plac merele"), nil)
 	c.Delete(0, 9)
 
 	iter := c.Squash(0).Iterator(true)
@@ -142,7 +142,7 @@ func BenchmarkBatch_Insert(b *testing.B) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		c.Insert(0, []byte("a"))
+		c.Insert(0, []byte("a"), nil)
 	}
 }
 
@@ -151,7 +151,7 @@ func BenchmarkBatch_Squash(b *testing.B) {
 	c := NewBlock()
 
 	for n := uint64(0); n < 1000; n++ {
-		c.Insert(n, []byte("lorem ipsum dolor"))
+		c.Insert(n, []byte("lorem ipsum dolor"), nil)
 	}
 
 	b.StartTimer()
@@ -168,7 +168,7 @@ func BenchmarkBatch_SquashReverse(b *testing.B) {
 	c := NewBlock()
 
 	for n := uint64(0); n < 1000; n++ {
-		c.Insert(n, []byte("lorem ipsum dolor"))
+		c.Insert(n, []byte("lorem ipsum dolor"), nil)
 	}
 
 	snap := c

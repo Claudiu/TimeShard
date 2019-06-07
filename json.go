@@ -45,7 +45,7 @@ func (block *Block) UnmarshalJSON(data []byte) error {
 	localBatch := NewBlock()
 	for _, op := range temp {
 		if op.Insert != "" {
-			localBatch.Insert(op.Position, []byte(op.Insert))
+			localBatch.Insert(op.Position, []byte(op.Insert), nil)
 			continue
 		}
 
